@@ -719,6 +719,52 @@
           "pages": 2
         }
       ]
+    },
+    {
+      "id": "2025-11-25-1764067759198",
+      "title": "Startup Strategy Framework",
+      "category": "Business",
+      "type": "Template",
+      "description": "A comprehensive template for business that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "business_template_1764067759198.pdf",
+      "path": "pdfs/2025-11-25/business_template_1764067759198.pdf",
+      "sections": [
+        {
+          "title": "Executive Summary",
+          "pages": 2
+        },
+        {
+          "title": "Market Analysis",
+          "pages": 2
+        },
+        {
+          "title": "Strategy & Planning",
+          "pages": 2
+        },
+        {
+          "title": "Implementation Steps",
+          "pages": 2
+        },
+        {
+          "title": "Financial Projections",
+          "pages": 2
+        },
+        {
+          "title": "Action Items",
+          "pages": 2
+        }
+      ],
+      "pageCount": 20,
+      "wordCount": 3156,
+      "imageCount": 11,
+      "sectionCount": 6,
+      "tags": [
+        "Business",
+        "Template",
+        "professional",
+        "comprehensive"
+      ]
     }
   ]
 }

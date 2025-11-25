@@ -1,3 +1,14 @@
 {
-  "logs": []
+  "logs": [
+    {
+      "id": "log-1764067759420",
+      "timestamp": "2025-11-25T10:49:19.420Z",
+      "type": "single",
+      "success": true,
+      "category": "Business",
+      "title": "Startup Strategy Framework",
+      "pageCount": 20,
+      "imageCount": 11
+    }
+  ]
 }
