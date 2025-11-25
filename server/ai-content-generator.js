@@ -14,6 +14,7 @@ export class AIContentGenerator {
     }
     return this.openai;
   }
+
   async generatePDFContent(title, category, type, sections) {
     const openai = this.getOpenAIClient();
     if (!openai) {
@@ -32,6 +33,7 @@ For each section, provide:
 - Key strategies or actionable advice (as bullet points)
 - A relevant quote or key takeaway
 - Real-world examples when applicable
+- An inline image suggestion that fits naturally within the content (describe what image would help illustrate the concepts)
 
 Make the content professional, informative, and valuable. Tailor the tone and depth to the category.
 
@@ -45,7 +47,8 @@ Respond in JSON format with this structure:
         {"type": "paragraph", "text": "..."},
         {"type": "heading", "text": "..."},
         {"type": "bullets", "items": ["...", "..."]},
-        {"type": "quote", "text": "..."}
+        {"type": "quote", "text": "..."},
+        {"type": "image", "prompt": "DALL-E prompt for inline image", "placement": "after paragraph 2"}
       ]
     }
   ],
@@ -54,7 +57,7 @@ Respond in JSON format with this structure:
 }`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -77,40 +80,47 @@ Respond in JSON format with this structure:
     }
   }
 
-  async generateThemeColors(title, category) {
+  async generateThemeAndStyle(title, category) {
     const openai = this.getOpenAIClient();
     if (!openai) {
       return {
         primary: "#9333EA",
         secondary: "#3B82F6",
         accent: "#10B981",
+        headerStyle: "modern",
+        fontPrimary: "Helvetica-Bold",
+        fontSecondary: "Helvetica",
         description: "Default professional theme"
       };
     }
 
     try {
-      const prompt = `Generate a professional color theme for a PDF document about "${title}" in the ${category} category.
+      const prompt = `Generate a complete visual theme and styling for a PDF document about "${title}" in the ${category} category.
 
-Choose colors that:
-- Reflect the topic and category
-- Are professional and readable
-- Create good contrast for text
-- Work well together visually
+Choose styling that:
+- Reflects the topic and category perfectly
+- Is professional and readable
+- Creates good contrast for text
+- Works well together visually
+- Has a unique header style appropriate for the topic
 
 Respond in JSON format:
 {
   "primary": "#HEX",
   "secondary": "#HEX",
   "accent": "#HEX",
-  "description": "Brief explanation of why these colors fit the topic"
+  "headerStyle": "modern|classic|minimalist|bold|elegant",
+  "fontPrimary": "Helvetica-Bold",
+  "fontSecondary": "Helvetica",
+  "description": "Brief explanation of why these colors and style fit the topic"
 }`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
-            content: "You are a professional designer who understands color theory and branding. Provide accessible, professional color schemes."
+            content: "You are a professional designer who understands color theory, typography, and branding. Provide accessible, professional design schemes."
           },
           {
             role: "user",
@@ -121,7 +131,11 @@ Respond in JSON format:
         max_completion_tokens: 500
       });
 
-      const theme = JSON.parse(response.choices[0].message.content);
+      const content = response.choices[0].message.content;
+      if (!content || content.trim() === '') {
+        throw new Error('Empty response from OpenAI');
+      }
+      const theme = JSON.parse(content);
       return theme;
     } catch (error) {
       console.error('Theme generation error:', error);
@@ -129,7 +143,178 @@ Respond in JSON format:
         primary: "#9333EA",
         secondary: "#3B82F6",
         accent: "#10B981",
+        headerStyle: "modern",
+        fontPrimary: "Helvetica-Bold",
+        fontSecondary: "Helvetica",
         description: "Default professional theme"
+      };
+    }
+  }
+
+  async generateChartData(title, category, sectionTitle) {
+    const openai = this.getOpenAIClient();
+    if (!openai) {
+      return {
+        type: "bar",
+        data: [0.4, 0.7, 0.55, 0.8, 0.6],
+        labels: ["Q1", "Q2", "Q3", "Q4", "Q5"],
+        title: "Progress Overview"
+      };
+    }
+
+    try {
+      const prompt = `Generate appropriate chart data for a section titled "${sectionTitle}" in a PDF about "${title}" (${category} category).
+
+Choose a chart type and data that:
+- Fits the section topic naturally
+- Is professional and informative
+- Uses realistic, relevant data points
+- Has 4-6 data points
+
+Respond in JSON format:
+{
+  "type": "bar|line|donut|radar",
+  "data": [array of 4-6 numbers between 0 and 1],
+  "labels": [array of 4-6 short labels],
+  "title": "Chart title"
+}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are a data visualization expert who creates meaningful, professional charts."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_completion_tokens: 500
+      });
+
+      const chartData = JSON.parse(response.choices[0].message.content);
+      return chartData;
+    } catch (error) {
+      console.error('Chart generation error:', error);
+      return {
+        type: "bar",
+        data: [0.4, 0.7, 0.55, 0.8, 0.6],
+        labels: ["Q1", "Q2", "Q3", "Q4", "Q5"],
+        title: "Progress Overview"
+      };
+    }
+  }
+
+  async generateHeroPage(title, category, type) {
+    const openai = this.getOpenAIClient();
+    if (!openai) {
+      return {
+        mainTitle: title,
+        subtitle: type,
+        description: `A comprehensive ${type.toLowerCase()} for ${category.toLowerCase()}`,
+        tagline: "Achieve your goals with structured guidance"
+      };
+    }
+
+    try {
+      const prompt = `Create a unique, compelling hero page for a PDF titled "${title}" (${type} in ${category} category).
+
+Make it:
+- Inspiring and professional
+- Tailored to the specific topic
+- Engaging for the target audience
+- Different from generic templates
+
+Respond in JSON format:
+{
+  "mainTitle": "${title}",
+  "subtitle": "creative subtitle",
+  "description": "2-3 sentence compelling description",
+  "tagline": "inspiring tagline"
+}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are a creative copywriter who crafts compelling, unique content for professional documents."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_completion_tokens: 500
+      });
+
+      const heroContent = JSON.parse(response.choices[0].message.content);
+      return heroContent;
+    } catch (error) {
+      console.error('Hero page generation error:', error);
+      return {
+        mainTitle: title,
+        subtitle: type,
+        description: `A comprehensive ${type.toLowerCase()} for ${category.toLowerCase()}`,
+        tagline: "Achieve your goals with structured guidance"
+      };
+    }
+  }
+
+  async generateEndingPage(title, category, type) {
+    const openai = this.getOpenAIClient();
+    if (!openai) {
+      return {
+        thankYouMessage: "Thank You!",
+        closingMessage: "Continue your journey to excellence",
+        finalThought: "Your success begins now"
+      };
+    }
+
+    try {
+      const prompt = `Create a unique, inspiring ending page for a PDF titled "${title}" (${type} in ${category} category).
+
+Make it:
+- Motivating and forward-looking
+- Specific to the topic
+- Memorable and impactful
+- Different from generic templates
+
+Respond in JSON format:
+{
+  "thankYouMessage": "unique thank you message (2-4 words)",
+  "closingMessage": "inspiring closing message",
+  "finalThought": "memorable final thought"
+}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are a creative copywriter who crafts memorable, inspiring closing messages for professional documents."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_completion_tokens: 500
+      });
+
+      const endingContent = JSON.parse(response.choices[0].message.content);
+      return endingContent;
+    } catch (error) {
+      console.error('Ending page generation error:', error);
+      return {
+        thankYouMessage: "Thank You!",
+        closingMessage: "Continue your journey to excellence",
+        finalThought: "Your success begins now"
       };
     }
   }
@@ -156,7 +341,7 @@ Return JSON:
 }`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",

@@ -140,8 +140,8 @@ export default function HomePage() {
           <p className="text-gray-600">No PDFs generated today yet. Click the button above to generate!</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {todayPDFs.map((pdf) => (
-              <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+            {todayPDFs.map((pdf, index) => (
+              <div key={`${pdf.path}-${index}`} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-2">
                   <div className="text-2xl">📄</div>
                   <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">

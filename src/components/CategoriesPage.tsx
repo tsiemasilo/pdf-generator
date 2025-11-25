@@ -147,8 +147,8 @@ export default function CategoriesPage() {
             <p className="text-gray-600">No PDFs in this category yet. Click the button above to generate one!</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {pdfs.map((pdf) => (
-                <div key={pdf.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+              {pdfs.map((pdf, index) => (
+                <div key={`${pdf.path}-${index}`} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between mb-2">
                     <div className="text-2xl">📄</div>
                     <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">

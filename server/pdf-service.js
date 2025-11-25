@@ -21,37 +21,50 @@ async function generatePDF(pdfData, outputPath, useAI = true) {
   let aiContent = null;
   let theme = null;
   let coverImageUrl = null;
+  let heroContent = null;
+  let endingContent = null;
+  let chartDataArray = [];
 
   if (useAI && process.env.OPENAI_API_KEY) {
     try {
       console.log(`🤖 Generating AI content for: ${pdfData.title}`);
       
-      const [generatedContent, generatedTheme, imagePrompt] = await Promise.all([
+      const [generatedContent, generatedTheme, imagePrompt, generatedHero, generatedEnding] = await Promise.all([
         aiGenerator.generatePDFContent(
           pdfData.title,
           pdfData.category,
           pdfData.type,
           pdfData.sections
         ),
-        aiGenerator.generateThemeColors(pdfData.title, pdfData.category),
-        aiGenerator.generateImagePrompt(pdfData.title, pdfData.category, 'cover')
+        aiGenerator.generateThemeAndStyle(pdfData.title, pdfData.category),
+        aiGenerator.generateImagePrompt(pdfData.title, pdfData.category, 'cover'),
+        aiGenerator.generateHeroPage(pdfData.title, pdfData.category, pdfData.type),
+        aiGenerator.generateEndingPage(pdfData.title, pdfData.category, pdfData.type)
       ]);
 
       aiContent = generatedContent;
       theme = generatedTheme;
+      heroContent = generatedHero;
+      endingContent = generatedEnding;
       
       if (imagePrompt) {
         console.log(`🎨 Generating cover image...`);
         coverImageUrl = await aiGenerator.generateImage(imagePrompt);
       }
+
+      console.log(`📊 Generating chart data for ${pdfData.sections.length} sections...`);
+      const chartPromises = pdfData.sections.map(section =>
+        aiGenerator.generateChartData(pdfData.title, pdfData.category, section.title)
+      );
+      chartDataArray = await Promise.all(chartPromises);
       
-      console.log(`✓ AI content and theme generated successfully`);
+      console.log(`✓ AI content, theme, and charts generated successfully`);
     } catch (error) {
       console.error('⚠️ AI generation failed, using default content:', error.message);
     }
   }
 
-  const generator = new PDFGenerator(aiContent, theme, coverImageUrl);
+  const generator = new PDFGenerator(aiContent, theme, coverImageUrl, heroContent, endingContent, chartDataArray);
   return await generator.generatePDF(pdfData, outputPath);
 }
 
@@ -66,9 +79,7 @@ export async function generateDailyPDFs() {
     errors: []
   };
 
-  const promises = [];
-
-  for (let i = 0; i < categories.length; i++) {
+  for (let i = 0; i < Math.min(categories.length, 5); i++) {
     const category = categories[i];
     const content = getRandomContent(category);
     
@@ -92,33 +103,35 @@ export async function generateDailyPDFs() {
       sections: content.sections
     };
 
-    const promise = generatePDF(pdfData, outputPath)
-      .then((result) => {
-        const enrichedPDFData = {
-          ...pdfData,
-          pageCount: result.metadata.pageCount,
-          wordCount: result.metadata.wordCount,
-          imageCount: result.metadata.imageCount,
-          sectionCount: result.metadata.sectionCount,
-          tags: [category, content.type, 'professional', 'comprehensive']
-        };
-        addPDFMetadata(enrichedPDFData);
-        results.count++;
-        results.pdfs.push(enrichedPDFData);
-        console.log(`✓ Generated: ${fileName} (${result.metadata.pageCount} pages, ${result.metadata.imageCount} images)`);
-      })
-      .catch(error => {
-        results.errors.push({
-          category,
-          error: error.message
-        });
-        console.error(`✗ Error generating ${fileName}:`, error.message);
+    try {
+      console.log(`\n📝 Generating PDF ${i + 1}/5: ${pdfData.title}...`);
+      const result = await generatePDF(pdfData, outputPath);
+      
+      const enrichedPDFData = {
+        ...pdfData,
+        pageCount: result.metadata.pageCount,
+        wordCount: result.metadata.wordCount,
+        imageCount: result.metadata.imageCount,
+        sectionCount: result.metadata.sectionCount,
+        tags: [category, content.type, 'professional', 'comprehensive']
+      };
+      addPDFMetadata(enrichedPDFData);
+      results.count++;
+      results.pdfs.push(enrichedPDFData);
+      console.log(`✓ Generated: ${fileName} (${result.metadata.pageCount} pages, ${result.metadata.imageCount} images)`);
+      
+      if (i < Math.min(categories.length, 5) - 1) {
+        console.log('⏳ Waiting 2 seconds before next generation...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    } catch (error) {
+      results.errors.push({
+        category,
+        error: error.message
       });
-
-    promises.push(promise);
+      console.error(`✗ Error generating ${fileName}:`, error.message);
+    }
   }
-
-  await Promise.all(promises);
 
   console.log(`\nGeneration complete: ${results.count} PDFs created`);
   if (results.errors.length > 0) {
@@ -131,7 +144,7 @@ export async function generateDailyPDFs() {
     count: results.count,
     date: today,
     errors: results.errors.length,
-    categories: categories.length
+    categories: Math.min(categories.length, 5)
   });
 
   return results;
