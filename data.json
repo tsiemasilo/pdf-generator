@@ -1,0 +1,724 @@
+{
+  "pdfs": [
+    {
+      "id": "2025-11-25-1",
+      "title": "Startup Strategy Framework",
+      "category": "Business",
+      "type": "Workbook",
+      "description": "A comprehensive workbook for business that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "business_workbook_1.pdf",
+      "path": "pdfs/2025-11-25/business_workbook_1.pdf",
+      "sections": [
+        {
+          "title": "Executive Summary",
+          "pages": 2
+        },
+        {
+          "title": "Market Analysis",
+          "pages": 2
+        },
+        {
+          "title": "Strategy & Planning",
+          "pages": 2
+        },
+        {
+          "title": "Implementation Steps",
+          "pages": 2
+        },
+        {
+          "title": "Financial Projections",
+          "pages": 2
+        },
+        {
+          "title": "Action Items",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-3",
+      "title": "Confidence Building Workbook",
+      "category": "Self-Help",
+      "type": "Journal",
+      "description": "A comprehensive journal for self-help that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "self_help_journal_3.pdf",
+      "path": "pdfs/2025-11-25/self_help_journal_3.pdf",
+      "sections": [
+        {
+          "title": "Self-Assessment",
+          "pages": 2
+        },
+        {
+          "title": "Goal Setting",
+          "pages": 2
+        },
+        {
+          "title": "Mindset Shifts",
+          "pages": 2
+        },
+        {
+          "title": "Daily Practices",
+          "pages": 2
+        },
+        {
+          "title": "Overcoming Obstacles",
+          "pages": 2
+        },
+        {
+          "title": "Progress Tracking",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-2",
+      "title": "Investment Tracking System",
+      "category": "Finance",
+      "type": "Tracker",
+      "description": "A comprehensive tracker for finance that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "finance_tracker_2.pdf",
+      "path": "pdfs/2025-11-25/finance_tracker_2.pdf",
+      "sections": [
+        {
+          "title": "Financial Assessment",
+          "pages": 2
+        },
+        {
+          "title": "Budget Creation",
+          "pages": 2
+        },
+        {
+          "title": "Saving Strategies",
+          "pages": 2
+        },
+        {
+          "title": "Investment Basics",
+          "pages": 2
+        },
+        {
+          "title": "Debt Management",
+          "pages": 2
+        },
+        {
+          "title": "Action Plan",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-4",
+      "title": "Wellness Transformation Guide",
+      "category": "Health",
+      "type": "Tracker",
+      "description": "A comprehensive tracker for health that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "health_tracker_4.pdf",
+      "path": "pdfs/2025-11-25/health_tracker_4.pdf",
+      "sections": [
+        {
+          "title": "Health Assessment",
+          "pages": 2
+        },
+        {
+          "title": "Nutrition Basics",
+          "pages": 2
+        },
+        {
+          "title": "Exercise Guidelines",
+          "pages": 2
+        },
+        {
+          "title": "Sleep Optimization",
+          "pages": 2
+        },
+        {
+          "title": "Stress Management",
+          "pages": 2
+        },
+        {
+          "title": "Weekly Tracker",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-5",
+      "title": "Strength Training Program",
+      "category": "Fitness",
+      "type": "Tracker",
+      "description": "A comprehensive tracker for fitness that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "fitness_tracker_5.pdf",
+      "path": "pdfs/2025-11-25/fitness_tracker_5.pdf",
+      "sections": [
+        {
+          "title": "Fitness Assessment",
+          "pages": 2
+        },
+        {
+          "title": "Workout Plans",
+          "pages": 2
+        },
+        {
+          "title": "Exercise Library",
+          "pages": 2
+        },
+        {
+          "title": "Progress Tracking",
+          "pages": 2
+        },
+        {
+          "title": "Nutrition Tips",
+          "pages": 2
+        },
+        {
+          "title": "Weekly Schedule",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-6",
+      "title": "Meal Prep Mastery",
+      "category": "Recipes",
+      "type": "Template",
+      "description": "A comprehensive template for recipes that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "recipes_template_6.pdf",
+      "path": "pdfs/2025-11-25/recipes_template_6.pdf",
+      "sections": [
+        {
+          "title": "Breakfast Recipes",
+          "pages": 2
+        },
+        {
+          "title": "Lunch Ideas",
+          "pages": 2
+        },
+        {
+          "title": "Dinner Options",
+          "pages": 2
+        },
+        {
+          "title": "Snacks & Desserts",
+          "pages": 2
+        },
+        {
+          "title": "Shopping Lists",
+          "pages": 2
+        },
+        {
+          "title": "Meal Planning",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-7",
+      "title": "Note-Taking Mastery",
+      "category": "Study Guides",
+      "type": "Study Guide",
+      "description": "A comprehensive study guide for study guides that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "study_guides_study_guide_7.pdf",
+      "path": "pdfs/2025-11-25/study_guides_study_guide_7.pdf",
+      "sections": [
+        {
+          "title": "Key Concepts",
+          "pages": 2
+        },
+        {
+          "title": "Definitions & Terms",
+          "pages": 2
+        },
+        {
+          "title": "Examples & Applications",
+          "pages": 2
+        },
+        {
+          "title": "Practice Questions",
+          "pages": 2
+        },
+        {
+          "title": "Study Tips",
+          "pages": 2
+        },
+        {
+          "title": "Quick Reference",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-9",
+      "title": "Business Templates Collection",
+      "category": "Templates",
+      "type": "Planner",
+      "description": "A comprehensive planner for templates that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "templates_planner_9.pdf",
+      "path": "pdfs/2025-11-25/templates_planner_9.pdf",
+      "sections": [
+        {
+          "title": "Template Overview",
+          "pages": 2
+        },
+        {
+          "title": "Template Set 1",
+          "pages": 2
+        },
+        {
+          "title": "Template Set 2",
+          "pages": 2
+        },
+        {
+          "title": "Template Set 3",
+          "pages": 2
+        },
+        {
+          "title": "Customization Guide",
+          "pages": 2
+        },
+        {
+          "title": "Usage Examples",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-8",
+      "title": "Interactive Learning Workbook",
+      "category": "Workbooks",
+      "type": "Workbook",
+      "description": "A comprehensive workbook for workbooks that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "workbooks_workbook_8.pdf",
+      "path": "pdfs/2025-11-25/workbooks_workbook_8.pdf",
+      "sections": [
+        {
+          "title": "Introduction",
+          "pages": 2
+        },
+        {
+          "title": "Module 1 Exercises",
+          "pages": 2
+        },
+        {
+          "title": "Module 2 Exercises",
+          "pages": 2
+        },
+        {
+          "title": "Module 3 Exercises",
+          "pages": 2
+        },
+        {
+          "title": "Self-Assessment",
+          "pages": 2
+        },
+        {
+          "title": "Answer Key",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-11",
+      "title": "Leadership Development Path",
+      "category": "Personal Development",
+      "type": "Journal",
+      "description": "A comprehensive journal for personal development that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "personal_development_journal_11.pdf",
+      "path": "pdfs/2025-11-25/personal_development_journal_11.pdf",
+      "sections": [
+        {
+          "title": "Self-Discovery",
+          "pages": 2
+        },
+        {
+          "title": "Core Values",
+          "pages": 2
+        },
+        {
+          "title": "Skill Development",
+          "pages": 2
+        },
+        {
+          "title": "Practice Exercises",
+          "pages": 2
+        },
+        {
+          "title": "Growth Tracking",
+          "pages": 2
+        },
+        {
+          "title": "Action Plans",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-10",
+      "title": "90-Day Goal Planner",
+      "category": "Planners",
+      "type": "Tracker",
+      "description": "A comprehensive tracker for planners that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "planners_tracker_10.pdf",
+      "path": "pdfs/2025-11-25/planners_tracker_10.pdf",
+      "sections": [
+        {
+          "title": "Goal Setting",
+          "pages": 2
+        },
+        {
+          "title": "Monthly Overview",
+          "pages": 2
+        },
+        {
+          "title": "Weekly Schedules",
+          "pages": 2
+        },
+        {
+          "title": "Daily Planning",
+          "pages": 2
+        },
+        {
+          "title": "Progress Tracking",
+          "pages": 2
+        },
+        {
+          "title": "Reflection Pages",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-12",
+      "title": "Brand Strategy Workbook",
+      "category": "Marketing",
+      "type": "Template",
+      "description": "A comprehensive template for marketing that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "marketing_template_12.pdf",
+      "path": "pdfs/2025-11-25/marketing_template_12.pdf",
+      "sections": [
+        {
+          "title": "Market Research",
+          "pages": 2
+        },
+        {
+          "title": "Strategy Development",
+          "pages": 2
+        },
+        {
+          "title": "Content Planning",
+          "pages": 2
+        },
+        {
+          "title": "Campaign Execution",
+          "pages": 2
+        },
+        {
+          "title": "Analytics & Metrics",
+          "pages": 2
+        },
+        {
+          "title": "Optimization Tips",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-14",
+      "title": "Inspiration & Action Guide",
+      "category": "Motivation",
+      "type": "Workbook",
+      "description": "A comprehensive workbook for motivation that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "motivation_workbook_14.pdf",
+      "path": "pdfs/2025-11-25/motivation_workbook_14.pdf",
+      "sections": [
+        {
+          "title": "Morning Motivation",
+          "pages": 2
+        },
+        {
+          "title": "Daily Affirmations",
+          "pages": 2
+        },
+        {
+          "title": "Goal Visualization",
+          "pages": 2
+        },
+        {
+          "title": "Action Steps",
+          "pages": 2
+        },
+        {
+          "title": "Progress Celebration",
+          "pages": 2
+        },
+        {
+          "title": "Weekly Reflection",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-15",
+      "title": "Gratitude Journal",
+      "category": "Journals",
+      "type": "Diary",
+      "description": "A comprehensive diary for journals that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "journals_diary_15.pdf",
+      "path": "pdfs/2025-11-25/journals_diary_15.pdf",
+      "sections": [
+        {
+          "title": "Getting Started",
+          "pages": 2
+        },
+        {
+          "title": "Daily Prompts",
+          "pages": 2
+        },
+        {
+          "title": "Weekly Themes",
+          "pages": 2
+        },
+        {
+          "title": "Monthly Review",
+          "pages": 2
+        },
+        {
+          "title": "Reflection Exercises",
+          "pages": 2
+        },
+        {
+          "title": "Progress Tracking",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-13",
+      "title": "Code Best Practices",
+      "category": "Tech & Programming",
+      "type": "Guide",
+      "description": "A comprehensive guide for tech & programming that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "tech___programming_guide_13.pdf",
+      "path": "pdfs/2025-11-25/tech___programming_guide_13.pdf",
+      "sections": [
+        {
+          "title": "Fundamentals",
+          "pages": 2
+        },
+        {
+          "title": "Syntax Reference",
+          "pages": 2
+        },
+        {
+          "title": "Common Patterns",
+          "pages": 2
+        },
+        {
+          "title": "Code Examples",
+          "pages": 2
+        },
+        {
+          "title": "Best Practices",
+          "pages": 2
+        },
+        {
+          "title": "Quick Reference",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-16",
+      "title": "Positive Thinking Guide",
+      "category": "Mindset",
+      "type": "Workbook",
+      "description": "A comprehensive workbook for mindset that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "mindset_workbook_16.pdf",
+      "path": "pdfs/2025-11-25/mindset_workbook_16.pdf",
+      "sections": [
+        {
+          "title": "Mindset Assessment",
+          "pages": 2
+        },
+        {
+          "title": "Belief Systems",
+          "pages": 2
+        },
+        {
+          "title": "Thought Patterns",
+          "pages": 2
+        },
+        {
+          "title": "Reframing Exercises",
+          "pages": 2
+        },
+        {
+          "title": "Daily Practices",
+          "pages": 2
+        },
+        {
+          "title": "Progress Tracking",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-17",
+      "title": "Family Activity Planner",
+      "category": "Parenting",
+      "type": "Tracker",
+      "description": "A comprehensive tracker for parenting that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "parenting_tracker_17.pdf",
+      "path": "pdfs/2025-11-25/parenting_tracker_17.pdf",
+      "sections": [
+        {
+          "title": "Age-Appropriate Tips",
+          "pages": 2
+        },
+        {
+          "title": "Communication Skills",
+          "pages": 2
+        },
+        {
+          "title": "Behavior Management",
+          "pages": 2
+        },
+        {
+          "title": "Activity Ideas",
+          "pages": 2
+        },
+        {
+          "title": "Milestone Tracking",
+          "pages": 2
+        },
+        {
+          "title": "Family Planning",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-18",
+      "title": "Focus & Efficiency Guide",
+      "category": "Productivity",
+      "type": "Planner",
+      "description": "A comprehensive planner for productivity that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "productivity_planner_18.pdf",
+      "path": "pdfs/2025-11-25/productivity_planner_18.pdf",
+      "sections": [
+        {
+          "title": "Productivity Assessment",
+          "pages": 2
+        },
+        {
+          "title": "Time Blocking",
+          "pages": 2
+        },
+        {
+          "title": "Priority Management",
+          "pages": 2
+        },
+        {
+          "title": "Focus Techniques",
+          "pages": 2
+        },
+        {
+          "title": "Weekly Planning",
+          "pages": 2
+        },
+        {
+          "title": "Habit Tracking",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-20",
+      "title": "Stock Trading Journal",
+      "category": "Trading & Investing",
+      "type": "Tracker",
+      "description": "A comprehensive tracker for trading & investing that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "trading___investing_tracker_20.pdf",
+      "path": "pdfs/2025-11-25/trading___investing_tracker_20.pdf",
+      "sections": [
+        {
+          "title": "Market Basics",
+          "pages": 2
+        },
+        {
+          "title": "Trading Strategies",
+          "pages": 2
+        },
+        {
+          "title": "Technical Analysis",
+          "pages": 2
+        },
+        {
+          "title": "Risk Management",
+          "pages": 2
+        },
+        {
+          "title": "Trade Tracking",
+          "pages": 2
+        },
+        {
+          "title": "Performance Review",
+          "pages": 2
+        }
+      ]
+    },
+    {
+      "id": "2025-11-25-19",
+      "title": "Real Estate Deal Analyzer",
+      "category": "Real Estate",
+      "type": "Tracker",
+      "description": "A comprehensive tracker for real estate that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "real_estate_tracker_19.pdf",
+      "path": "pdfs/2025-11-25/real_estate_tracker_19.pdf",
+      "sections": [
+        {
+          "title": "Market Overview",
+          "pages": 2
+        },
+        {
+          "title": "Property Analysis",
+          "pages": 2
+        },
+        {
+          "title": "Financial Calculations",
+          "pages": 2
+        },
+        {
+          "title": "Due Diligence",
+          "pages": 2
+        },
+        {
+          "title": "Deal Tracking",
+          "pages": 2
+        },
+        {
+          "title": "Investment Strategy",
+          "pages": 2
+        }
+      ]
+    }
+  ]
+}

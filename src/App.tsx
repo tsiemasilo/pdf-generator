@@ -1,16 +1,25 @@
+import { useState } from 'react';
+import HomePage from './components/HomePage';
+import CategoriesPage from './components/CategoriesPage';
+import PDFsPage from './components/PDFsPage';
+import Navigation from './components/Navigation';
+
+type Page = 'home' | 'categories' | 'pdfs';
+
 function App() {
+  const [currentPage, setCurrentPage] = useState<Page>('home');
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-6xl font-bold text-white mb-4 drop-shadow-lg">
-          Hello World
-        </h1>
-        <p className="text-xl text-white/90">
-          React + Vite + TypeScript + Tailwind CSS
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+      <Navigation currentPage={currentPage} onNavigate={setCurrentPage} />
+      
+      <main className="container mx-auto px-4 py-8">
+        {currentPage === 'home' && <HomePage />}
+        {currentPage === 'categories' && <CategoriesPage />}
+        {currentPage === 'pdfs' && <PDFsPage />}
+      </main>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

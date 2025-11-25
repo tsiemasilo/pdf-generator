@@ -1,0 +1,174 @@
+Build an automated “PDF Generation Library App” using Node.js (or Python if Replit prefers) that generates 10+ new PDFs every day based on bestselling digital product trends. The app must create a categorized library of PDFs including workbooks, study guides, cheat sheets, templates, planners, reports, guides, and more. Include at least 15 categories, and in each category generate at least 1 new PDF per day. Below is the full detailed specification:
+
+🔥 PROJECT OVERVIEW
+
+Create a fully automated SaaS-style app called AutoPDF Library.
+
+Its purpose is to automatically generate daily fresh PDF digital products based on popular and trending bestselling categories such as:
+
+Business
+
+Finance
+
+Self-help
+
+Health
+
+Fitness
+
+Recipes
+
+Study Guides
+
+Workbooks
+
+Templates
+
+Planners
+
+Personal Development
+
+Marketing
+
+Tech & Programming
+
+Motivation
+
+Journals
+
+Mindset
+
+Parenting
+
+Productivity
+
+Real-Estate
+
+Trading / Investing
+
+Every day the system must automatically generate 10+ new PDFs, each in a different category.
+
+The PDFs must be automatically stored in a folder structure like:
+
+/pdfs/
+   /2025-06-25/
+        business_template.pdf
+        fitness_meal_plan.pdf
+        study_guide_biology.pdf
+        …
+   /2025-06-26/
+        ...
+
+
+Also store metadata for each PDF in data.json.
+
+🧠 CONTENT GENERATION REQUIREMENTS
+
+For every generated PDF:
+
+Generate a unique title
+
+Generate a description
+
+Include a table of contents
+
+Add structured sections (min 8–12 pages of content)
+
+Include simple visual elements using ASCII or basic shapes if needed
+
+For templates and workbooks, include fillable sections
+
+For study guides, include:
+
+summaries
+
+definitions
+
+exercises
+
+For planners/journals, include:
+
+tables
+
+weekly sheets
+
+daily trackers
+
+The content should follow trends and bestselling digital product styles.
+
+📄 PDF GENERATION REQUIREMENTS
+
+Use any suitable PDF library:
+
+pdfkit
+
+OR reportlab
+
+OR puppeteer + HTML
+
+OR Replit’s preferred library
+
+Every PDF must have:
+
+Header (title, date)
+
+Footer (page numbers)
+
+Proper margins
+
+Clean readable formatting
+
+📅 DAILY AUTOMATION
+
+Implement a daily scheduler:
+
+Use node-cron or Python schedule
+
+The scheduler must run every day at 00:00 (midnight)
+
+The system generates a new batch of PDFs (10+)
+
+Also allow a manual “Generate Now” button on a dashboard.
+
+🌐 SIMPLE ADMIN DASHBOARD (Web UI)
+
+Create a lightweight web dashboard using:
+
+Express.js + EJS
+OR
+
+Python Flask + HTML templates
+
+Dashboard features:
+
+1. Home Page
+
+Shows how many PDFs generated today
+
+Shows list of today's PDFs
+
+Button: “Generate New PDFs Now”
+
+2. Categories Page
+
+Show all categories available
+
+When clicked → show list of PDFs under that category
+
+3. PDF Download Page
+
+Allow downloading PDFs
+
+Show PDF metadata:
+
+date generated
+
+category
+
+type
+
+description
+
+4. Search Bar
+
+User can search PDFs by keyword.
