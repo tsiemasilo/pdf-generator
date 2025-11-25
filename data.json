@@ -2789,6 +2789,52 @@
         "professional",
         "comprehensive"
       ]
+    },
+    {
+      "id": "2025-11-25-5",
+      "title": "Exercise Routine Builder",
+      "category": "Fitness",
+      "type": "Meal Plan",
+      "description": "A comprehensive meal plan for fitness that helps you achieve your goals with structured guidance and actionable insights.",
+      "date": "2025-11-25",
+      "filename": "fitness_meal_plan_5.pdf",
+      "path": "pdfs/2025-11-25/fitness_meal_plan_5.pdf",
+      "sections": [
+        {
+          "title": "Fitness Assessment",
+          "pages": 2
+        },
+        {
+          "title": "Workout Plans",
+          "pages": 2
+        },
+        {
+          "title": "Exercise Library",
+          "pages": 2
+        },
+        {
+          "title": "Progress Tracking",
+          "pages": 2
+        },
+        {
+          "title": "Nutrition Tips",
+          "pages": 2
+        },
+        {
+          "title": "Weekly Schedule",
+          "pages": 2
+        }
+      ],
+      "pageCount": 15,
+      "wordCount": 1418,
+      "imageCount": 8,
+      "sectionCount": 6,
+      "tags": [
+        "Fitness",
+        "Meal Plan",
+        "professional",
+        "comprehensive"
+      ]
     }
   ]
 }
