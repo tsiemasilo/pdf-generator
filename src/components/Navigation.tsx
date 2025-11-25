@@ -1,4 +1,4 @@
-type Page = 'home' | 'categories' | 'pdfs';
+type Page = 'home' | 'categories' | 'pdfs' | 'logs';
 
 interface NavigationProps {
   currentPage: Page;
@@ -10,6 +10,7 @@ export default function Navigation({ currentPage, onNavigate }: NavigationProps)
     { id: 'home', label: 'Home', icon: '🏠' },
     { id: 'categories', label: 'Categories', icon: '📁' },
     { id: 'pdfs', label: 'All PDFs', icon: '📄' },
+    { id: 'logs', label: 'Logs', icon: '📋' },
   ];
 
   return (

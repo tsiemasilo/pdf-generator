@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import { generatePDF } from './pdf-generator.js';
 import { categories, getRandomContent } from './content-templates.js';
 import { addPDFMetadata, getTodayDate } from './utils.js';
+import { addGenerationLog } from './generation-logs.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,11 +52,19 @@ export async function generateDailyPDFs() {
     };
 
     const promise = generatePDF(pdfData, outputPath)
-      .then(() => {
-        addPDFMetadata(pdfData);
+      .then((result) => {
+        const enrichedPDFData = {
+          ...pdfData,
+          pageCount: result.metadata.pageCount,
+          wordCount: result.metadata.wordCount,
+          imageCount: result.metadata.imageCount,
+          sectionCount: result.metadata.sectionCount,
+          tags: [category, content.type, 'professional', 'comprehensive']
+        };
+        addPDFMetadata(enrichedPDFData);
         results.count++;
-        results.pdfs.push(pdfData);
-        console.log(`✓ Generated: ${fileName}`);
+        results.pdfs.push(enrichedPDFData);
+        console.log(`✓ Generated: ${fileName} (${result.metadata.pageCount} pages, ${result.metadata.imageCount} images)`);
       })
       .catch(error => {
         results.errors.push({
@@ -74,6 +83,15 @@ export async function generateDailyPDFs() {
   if (results.errors.length > 0) {
     console.log(`Errors: ${results.errors.length}`);
   }
+
+  addGenerationLog({
+    type: 'batch',
+    success: results.count > 0,
+    count: results.count,
+    date: today,
+    errors: results.errors.length,
+    categories: categories.length
+  });
 
   return results;
 }
@@ -103,8 +121,27 @@ export async function generateSinglePDF(category) {
     sections: content.sections
   };
 
-  await generatePDF(pdfData, outputPath);
-  addPDFMetadata(pdfData);
+  const result = await generatePDF(pdfData, outputPath);
+  
+  const enrichedPDFData = {
+    ...pdfData,
+    pageCount: result.metadata.pageCount,
+    wordCount: result.metadata.wordCount,
+    imageCount: result.metadata.imageCount,
+    sectionCount: result.metadata.sectionCount,
+    tags: [category, content.type, 'professional', 'comprehensive']
+  };
+  
+  addPDFMetadata(enrichedPDFData);
 
-  return pdfData;
+  addGenerationLog({
+    type: 'single',
+    success: true,
+    category: category,
+    title: content.title,
+    pageCount: result.metadata.pageCount,
+    imageCount: result.metadata.imageCount
+  });
+
+  return enrichedPDFData;
 }

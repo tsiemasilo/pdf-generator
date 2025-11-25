@@ -13,6 +13,7 @@ import {
 } from './utils.js';
 import { categories } from './content-templates.js';
 import { startScheduler, isSchedulerRunning } from './scheduler.js';
+import { getGenerationLogs } from './generation-logs.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -135,6 +136,16 @@ app.get('/api/download/:date/:filename', (req, res) => {
         res.status(404).json({ error: 'File not found' });
       }
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/logs', (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 50;
+    const logs = getGenerationLogs(limit);
+    res.json({ logs, count: logs.length });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

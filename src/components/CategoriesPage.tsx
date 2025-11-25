@@ -9,6 +9,10 @@ interface PDF {
   date: string;
   filename: string;
   path: string;
+  pageCount?: number;
+  wordCount?: number;
+  imageCount?: number;
+  tags?: string[];
 }
 
 export default function CategoriesPage() {
@@ -16,6 +20,8 @@ export default function CategoriesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [pdfs, setPdfs] = useState<PDF[]>([]);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     loadCategories();
@@ -46,6 +52,35 @@ export default function CategoriesPage() {
       setPdfs(data.pdfs);
     } catch (error) {
       console.error('Error loading PDFs:', error);
+    }
+  };
+
+  const handleGenerateCategory = async () => {
+    if (!selectedCategory) return;
+    
+    setGenerating(true);
+    setMessage('');
+    
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category: selectedCategory })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setMessage(`✅ Successfully generated PDF for ${selectedCategory}!`);
+        loadCategoryPDFs(selectedCategory);
+      } else {
+        setMessage('❌ Generation failed');
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      setMessage('❌ Error generating PDF');
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -82,12 +117,34 @@ export default function CategoriesPage() {
 
       {selectedCategory && (
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">
-            {selectedCategory} ({pdfs.length} PDFs)
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-2xl font-bold text-gray-800">
+              {selectedCategory} ({pdfs.length} PDFs)
+            </h3>
+            
+            <button
+              onClick={handleGenerateCategory}
+              disabled={generating}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                generating
+                  ? 'bg-gray-400 cursor-not-allowed text-white'
+                  : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-md hover:shadow-lg'
+              }`}
+            >
+              {generating ? '🔄 Generating...' : `✨ Generate ${selectedCategory} PDF`}
+            </button>
+          </div>
+          
+          {message && (
+            <div className={`mb-4 p-3 rounded-lg ${
+              message.includes('✅') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}>
+              {message}
+            </div>
+          )}
           
           {pdfs.length === 0 ? (
-            <p className="text-gray-600">No PDFs in this category yet.</p>
+            <p className="text-gray-600">No PDFs in this category yet. Click the button above to generate one!</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {pdfs.map((pdf) => (
@@ -100,7 +157,15 @@ export default function CategoriesPage() {
                   </div>
                   <h4 className="font-bold text-gray-800 mb-2 line-clamp-2">{pdf.title}</h4>
                   <p className="text-sm text-gray-600 mb-2 line-clamp-2">{pdf.description}</p>
-                  <div className="text-xs text-gray-500 mb-3">{pdf.date}</div>
+                  <div className="text-xs text-gray-500 mb-2">{pdf.date}</div>
+                  
+                  {(pdf.pageCount || pdf.imageCount) && (
+                    <div className="flex gap-2 text-xs text-gray-500 mb-3">
+                      {pdf.pageCount && <span>📄 {pdf.pageCount}p</span>}
+                      {pdf.imageCount && <span>🖼️ {pdf.imageCount}img</span>}
+                    </div>
+                  )}
+                  
                   <a
                     href={`/${pdf.path}`}
                     download

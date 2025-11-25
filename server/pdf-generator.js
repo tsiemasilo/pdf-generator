@@ -9,12 +9,24 @@ const __dirname = path.dirname(__filename);
 export class PDFGenerator {
   constructor() {
     this.doc = null;
-    this.currentPage = 1;
+    this.currentPage = 0;
+    this.content = null;
+    this.metadata = {
+      pageCount: 0,
+      wordCount: 0,
+      imageCount: 0,
+      sectionCount: 0
+    };
+    this.pageWidth = 612;
+    this.pageHeight = 792;
+    this.margin = 36;
+    this.contentWidth = this.pageWidth - (this.margin * 2);
   }
 
   async generatePDF(content, outputPath) {
     return new Promise((resolve, reject) => {
       try {
+        this.content = content;
         const dir = path.dirname(outputPath);
         if (!fs.existsSync(dir)) {
           fs.mkdirSync(dir, { recursive: true });
@@ -23,24 +35,43 @@ export class PDFGenerator {
         this.doc = new PDFDocument({
           size: 'LETTER',
           margins: {
-            top: 50,
-            bottom: 50,
-            left: 50,
-            right: 50
-          }
+            top: this.margin,
+            bottom: this.margin + 30,
+            left: this.margin,
+            right: this.margin
+          },
+          bufferPages: true
         });
 
         const stream = fs.createWriteStream(outputPath);
         this.doc.pipe(stream);
 
-        this.addCoverPage(content);
-        this.addTableOfContents(content);
-        this.addContentPages(content);
+        this.addCoverPage();
+        this.addExecutiveSummary();
+        this.addTableOfContents();
+        this.addContentSections();
+        this.addWorksheetPage();
+        this.addSummaryPage();
+        this.addFinalPage();
+
+        const range = this.doc.bufferedPageRange();
+        for (let i = 0; i < range.count; i++) {
+          this.doc.switchToPage(i);
+          if (i > 0) {
+            this.addHeader(i + 1);
+          }
+          this.addFooter(i + 1);
+        }
+
+        this.metadata.pageCount = range.count;
 
         this.doc.end();
 
         stream.on('finish', () => {
-          resolve(outputPath);
+          resolve({
+            path: outputPath,
+            metadata: this.metadata
+          });
         });
 
         stream.on('error', reject);
@@ -50,169 +81,672 @@ export class PDFGenerator {
     });
   }
 
-  addCoverPage(content) {
-    this.doc
-      .fontSize(32)
-      .font('Helvetica-Bold')
-      .text(content.title, { align: 'center' });
+  addHeader(pageNum) {
+    if (pageNum === 1) return;
 
-    this.doc.moveDown(2);
-
-    this.doc
-      .fontSize(18)
-      .font('Helvetica')
-      .text(content.type, { align: 'center' });
-
-    this.doc.moveDown(1);
-
-    this.doc
-      .fontSize(14)
-      .font('Helvetica-Oblique')
-      .text(content.category, { align: 'center' });
-
-    this.doc.moveDown(3);
-
-    this.doc
-      .fontSize(12)
-      .font('Helvetica')
-      .text(content.description, {
-        align: 'center',
-        width: 400
-      });
-
-    this.doc.moveDown(4);
-
-    this.doc
-      .fontSize(10)
-      .text(`Generated: ${new Date(content.date).toLocaleDateString()}`, {
-        align: 'center'
-      });
-
-    this.addFooter();
-  }
-
-  addTableOfContents(content) {
-    this.doc.addPage();
-    this.currentPage++;
-
-    this.doc
-      .fontSize(24)
-      .font('Helvetica-Bold')
-      .text('Table of Contents', { align: 'center' });
-
-    this.doc.moveDown(2);
-
-    this.doc.fontSize(12).font('Helvetica');
-
-    content.sections.forEach((section, index) => {
-      const pageNumber = 3 + (index * 2);
-      this.doc.text(`${index + 1}. ${section.title}`, {
-        continued: true
-      });
-      this.doc.text(`........................................ ${pageNumber}`, {
-        align: 'right'
-      });
-      this.doc.moveDown(0.5);
-    });
-
-    this.addFooter();
-  }
-
-  addContentPages(content) {
-    content.sections.forEach((section, sectionIndex) => {
-      for (let pageNum = 0; pageNum < section.pages; pageNum++) {
-        this.doc.addPage();
-        this.currentPage++;
-
-        if (pageNum === 0) {
-          this.doc
-            .fontSize(20)
-            .font('Helvetica-Bold')
-            .text(`${sectionIndex + 1}. ${section.title}`, {
-              underline: true
-            });
-
-          this.doc.moveDown(1);
-        }
-
-        this.doc.fontSize(11).font('Helvetica');
-
-        const paragraphs = this.generateSectionContent(section.title, content.category, pageNum);
-        
-        paragraphs.forEach(para => {
-          this.doc.text(para, { align: 'justify' });
-          this.doc.moveDown(1);
-        });
-
-        if (section.title.includes('Exercise') || 
-            section.title.includes('Practice') || 
-            section.title.includes('Tracker') ||
-            section.title.includes('Planning')) {
-          this.addWorksheetElements();
-        }
-
-        this.addFooter();
-      }
-    });
-  }
-
-  generateSectionContent(sectionTitle, category, pageNum) {
-    const paragraphs = [];
-    
-    const intro = `This section covers important aspects of ${sectionTitle.toLowerCase()} within the context of ${category.toLowerCase()}. Understanding these concepts will help you achieve better results and reach your goals more effectively.`;
-    paragraphs.push(intro);
-
-    const keyPoints = [
-      `Key Point 1: ${sectionTitle} requires careful attention to detail and consistent practice. By following the guidelines outlined in this section, you'll be able to make significant progress.`,
-      `Key Point 2: Remember that success in ${category.toLowerCase()} comes from applying what you learn. Take time to work through the exercises and examples provided.`,
-      `Key Point 3: Track your progress regularly to ensure you're moving in the right direction. Use the worksheets and templates included to stay organized.`
-    ];
-
-    paragraphs.push(keyPoints[pageNum % keyPoints.length]);
-
-    if (pageNum === 0) {
-      paragraphs.push(`Important Note: As you work through this material, remember to take breaks and reflect on what you're learning. The most effective approach is to apply these concepts gradually and consistently.`);
-    }
-
-    return paragraphs;
-  }
-
-  addWorksheetElements() {
-    this.doc.moveDown(1);
-    
-    this.doc.fontSize(10).font('Helvetica-Bold');
-    this.doc.text('Exercise Space:', { underline: true });
-    this.doc.moveDown(0.5);
-    
-    this.doc.font('Helvetica');
-    for (let i = 0; i < 5; i++) {
-      this.doc.text('_'.repeat(80));
-      this.doc.moveDown(0.5);
-    }
-
-    this.doc.moveDown(0.5);
-    this.doc.text('Notes:', { underline: true });
-    this.doc.moveDown(0.3);
-    
-    for (let i = 0; i < 3; i++) {
-      this.doc.text('_'.repeat(80));
-      this.doc.moveDown(0.5);
-    }
-  }
-
-  addFooter() {
-    const bottomMargin = 50;
-    const pageHeight = this.doc.page.height;
+    const headerY = 20;
     
     this.doc
       .fontSize(9)
       .font('Helvetica')
-      .text(
-        `Page ${this.currentPage}`,
-        50,
-        pageHeight - bottomMargin + 10,
-        { align: 'center' }
-      );
+      .fillColor('#666666')
+      .text(this.content.title, this.margin, headerY, {
+        width: this.contentWidth * 0.6,
+        align: 'left'
+      })
+      .text(this.content.category, this.margin, headerY, {
+        width: this.contentWidth,
+        align: 'right'
+      })
+      .text(new Date(this.content.date).toLocaleDateString(), this.margin, headerY + 10, {
+        width: this.contentWidth,
+        align: 'right'
+      });
+
+    this.doc
+      .strokeColor('#CCCCCC')
+      .lineWidth(0.5)
+      .moveTo(this.margin, headerY + 22)
+      .lineTo(this.pageWidth - this.margin, headerY + 22)
+      .stroke();
+
+    this.doc.fillColor('#000000');
+  }
+
+  addFooter(pageNum) {
+    const footerY = this.pageHeight - 40;
+    
+    this.doc
+      .strokeColor('#CCCCCC')
+      .lineWidth(0.5)
+      .moveTo(this.margin, footerY)
+      .lineTo(this.pageWidth - this.margin, footerY)
+      .stroke();
+
+    this.doc
+      .fontSize(9)
+      .font('Helvetica')
+      .fillColor('#666666')
+      .text('Generated by AutoPDF Library', this.margin, footerY + 8, {
+        width: this.contentWidth * 0.7,
+        align: 'left'
+      })
+      .text(`Page ${pageNum}`, this.margin, footerY + 8, {
+        width: this.contentWidth,
+        align: 'right'
+      });
+
+    this.doc.fillColor('#000000');
+  }
+
+  addCoverPage() {
+    this.currentPage++;
+
+    this.addDecorativeBackground('#9333EA', '#3B82F6');
+
+    const titleText = this.content.title;
+    this.doc
+      .fontSize(40)
+      .font('Helvetica-Bold')
+      .fillColor('#FFFFFF')
+      .text(titleText, this.margin, 180, {
+        width: this.contentWidth,
+        align: 'center'
+      });
+    this.metadata.wordCount += titleText.split(' ').length;
+
+    this.doc.moveDown(1.5);
+
+    const typeText = this.content.type;
+    this.doc
+      .fontSize(22)
+      .font('Helvetica')
+      .text(typeText, {
+        width: this.contentWidth,
+        align: 'center'
+      });
+    this.metadata.wordCount += typeText.split(' ').length;
+
+    this.doc.moveDown(0.8);
+
+    const categoryText = this.content.category;
+    this.doc
+      .fontSize(16)
+      .font('Helvetica-Oblique')
+      .text(categoryText, {
+        width: this.contentWidth,
+        align: 'center'
+      });
+    this.metadata.wordCount += categoryText.split(' ').length;
+
+    this.addCoverImage();
+
+    const descText = this.content.description || 'A comprehensive guide to help you achieve your goals.';
+    this.doc
+      .fontSize(13)
+      .font('Helvetica')
+      .text(descText, this.margin + 60, 480, {
+        width: this.contentWidth - 120,
+        align: 'center',
+        lineGap: 5
+      });
+    this.metadata.wordCount += descText.split(' ').length;
+
+    const authorText = `Author: AutoPDF Engine`;
+    const dateText = `Generated: ${new Date(this.content.date).toLocaleDateString()}`;
+    this.doc
+      .fontSize(11)
+      .fillColor('#E0E0E0')
+      .text(authorText, this.margin, 600, {
+        width: this.contentWidth,
+        align: 'center'
+      })
+      .text(dateText, {
+        width: this.contentWidth,
+        align: 'center'
+      });
+    this.metadata.wordCount += authorText.split(' ').length + dateText.split(' ').length;
+
+    this.doc.fillColor('#000000');
+    this.metadata.imageCount++;
+  }
+
+  addDecorativeBackground(color1, color2) {
+    const gradient = this.doc.linearGradient(0, 0, 0, this.pageHeight);
+    gradient.stop(0, color1);
+    gradient.stop(1, color2);
+    
+    this.doc
+      .rect(0, 0, this.pageWidth, this.pageHeight)
+      .fill(gradient);
+  }
+
+  addCoverImage() {
+    const iconSize = 80;
+    const iconX = (this.pageWidth - iconSize) / 2;
+    const iconY = 360;
+
+    this.doc
+      .circle(iconX + iconSize / 2, iconY + iconSize / 2, iconSize / 2)
+      .fillAndStroke('#FFFFFF', '#E0E0E0');
+
+    this.doc
+      .fontSize(48)
+      .fillColor('#9333EA')
+      .text('📄', iconX + 16, iconY + 16);
+
+    this.doc.fillColor('#FFFFFF');
+  }
+
+  addExecutiveSummary() {
+    this.doc.addPage();
+    this.currentPage++;
+
+    this.doc
+      .fontSize(28)
+      .font('Helvetica-Bold')
+      .fillColor('#1F2937')
+      .text('Executive Summary', this.margin, 80);
+
+    this.doc.moveDown(2);
+
+    const summaryParagraphs = [
+      `This ${this.content.type.toLowerCase()} provides a comprehensive exploration of ${this.content.category.toLowerCase()}, designed to equip you with the knowledge, tools, and strategies necessary for success. Through carefully structured sections and actionable insights, you'll discover proven methodologies that can be immediately applied to your journey.`,
+      
+      `The purpose of this document is to serve as your complete resource for mastering ${this.content.category.toLowerCase()}. Whether you're just beginning your journey or looking to enhance your existing knowledge, this guide offers valuable information at every level. Each section has been crafted to build upon the previous one, creating a cohesive learning experience.`,
+      
+      `Our target audience includes professionals, enthusiasts, and anyone committed to personal and professional growth in ${this.content.category.toLowerCase()}. We've designed this material to be accessible yet comprehensive, ensuring that readers at all levels can benefit from the content.`,
+      
+      `To get the most from this ${this.content.type.toLowerCase()}, we recommend working through the sections in order, completing the exercises and worksheets as you go. Take time to reflect on how each concept applies to your specific situation. The templates and tools provided are meant to be customized to your needs, so don't hesitate to adapt them to your circumstances.`,
+      
+      `Throughout this guide, you'll find practical examples, detailed explanations, and actionable steps. We've included visual aids, charts, and diagrams to help illustrate key concepts. The worksheets and activity pages are designed to help you apply what you've learned immediately, reinforcing the material through hands-on practice.`
+    ];
+
+    this.doc
+      .fontSize(12)
+      .font('Helvetica')
+      .fillColor('#374151')
+      .lineGap(6);
+
+    summaryParagraphs.forEach(para => {
+      this.doc.text(para, {
+        width: this.contentWidth,
+        align: 'justify'
+      });
+      this.doc.moveDown(1.2);
+      this.metadata.wordCount += para.split(' ').length;
+    });
+
+    this.addSimpleChart(450);
+    this.metadata.imageCount++;
+  }
+
+  addSimpleChart(yPosition) {
+    const chartWidth = 200;
+    const chartHeight = 120;
+    const chartX = (this.pageWidth - chartWidth) / 2;
+
+    this.doc
+      .rect(chartX, yPosition, chartWidth, chartHeight)
+      .fillAndStroke('#F3F4F6', '#D1D5DB');
+
+    const barData = [0.4, 0.7, 0.55, 0.8, 0.6];
+    const barWidth = chartWidth / (barData.length * 2);
+    const barSpacing = barWidth;
+
+    barData.forEach((value, index) => {
+      const barHeight = chartHeight * 0.8 * value;
+      const barX = chartX + 10 + (index * (barWidth + barSpacing));
+      const barY = yPosition + chartHeight - 10 - barHeight;
+
+      this.doc
+        .rect(barX, barY, barWidth, barHeight)
+        .fill('#9333EA');
+    });
+
+    this.doc
+      .fontSize(10)
+      .font('Helvetica')
+      .fillColor('#6B7280')
+      .text('Progress Overview', chartX, yPosition + chartHeight + 5, {
+        width: chartWidth,
+        align: 'center'
+      });
+
+    this.doc.fillColor('#000000');
+  }
+
+  addSectionIcon(yPosition) {
+    const iconSize = 60;
+    const iconX = (this.pageWidth - iconSize) / 2;
+
+    this.doc
+      .circle(iconX + iconSize / 2, yPosition + iconSize / 2, iconSize / 2)
+      .fillAndStroke('#F3F4F6', '#D1D5DB');
+
+    this.doc
+      .fontSize(32)
+      .fillColor('#9333EA')
+      .text('📊', iconX + 14, yPosition + 14);
+
+    this.doc.fillColor('#000000');
+  }
+
+  addTableOfContents() {
+    this.doc.addPage();
+    this.currentPage++;
+
+    this.doc
+      .fontSize(28)
+      .font('Helvetica-Bold')
+      .fillColor('#1F2937')
+      .text('Table of Contents', this.margin, 80);
+    this.metadata.wordCount += 3;
+
+    this.doc.moveDown(2);
+
+    const tocEntries = [
+      { title: 'Executive Summary', page: 2 },
+      ...this.content.sections.map((section, index) => ({
+        title: `${index + 1}. ${section.title}`,
+        page: 4 + index
+      })),
+      { title: 'Worksheets & Activities', page: 4 + this.content.sections.length },
+      { title: 'Summary & Key Takeaways', page: 5 + this.content.sections.length }
+    ];
+
+    this.doc
+      .fontSize(12)
+      .font('Helvetica')
+      .fillColor('#374151');
+
+    tocEntries.forEach((entry, index) => {
+      const titleWidth = this.contentWidth - 60;
+      
+      this.doc
+        .font('Helvetica')
+        .text(entry.title, this.margin, undefined, {
+          width: titleWidth,
+          continued: false
+        });
+      this.metadata.wordCount += entry.title.split(' ').length;
+
+      const dotCount = Math.floor((titleWidth - this.doc.widthOfString(entry.title)) / 3);
+      const dots = '.'.repeat(Math.max(dotCount, 3));
+      
+      const y = this.doc.y - 12;
+      this.doc
+        .text(dots + ' ' + entry.page, this.margin, y, {
+          width: this.contentWidth,
+          align: 'right'
+        });
+
+      this.doc.moveDown(0.8);
+    });
+
+    this.doc.fillColor('#000000');
+  }
+
+  addContentSections() {
+    this.content.sections.forEach((section, sectionIndex) => {
+      this.metadata.sectionCount++;
+      
+      this.doc.addPage();
+      this.currentPage++;
+
+      const sectionHeaderText = `${sectionIndex + 1}. ${section.title}`;
+      this.doc
+        .fontSize(24)
+        .font('Helvetica-Bold')
+        .fillColor('#1F2937')
+        .text(sectionHeaderText, this.margin, 80);
+      this.metadata.wordCount += sectionHeaderText.split(' ').length;
+
+      this.doc.moveDown(1.5);
+
+      const paragraphs = this.generateRichSectionContent(section.title, this.content.category, sectionIndex);
+      
+      this.doc
+        .fontSize(12)
+        .font('Helvetica')
+        .fillColor('#374151')
+        .lineGap(6);
+
+      paragraphs.forEach((para, idx) => {
+        if (para.type === 'heading') {
+          this.doc.moveDown(1);
+          this.doc
+            .fontSize(16)
+            .font('Helvetica-Bold')
+            .fillColor('#1F2937')
+            .text(para.text, {
+              width: this.contentWidth
+            });
+          this.metadata.wordCount += para.text.split(' ').length;
+          this.doc.moveDown(0.5);
+          this.doc
+            .fontSize(12)
+            .font('Helvetica')
+            .fillColor('#374151');
+        } else if (para.type === 'bullets') {
+          para.items.forEach(item => {
+            this.doc.text('• ' + item, {
+              width: this.contentWidth - 20,
+              indent: 10
+            });
+            this.doc.moveDown(0.5);
+            this.metadata.wordCount += item.split(' ').length;
+          });
+          this.doc.moveDown(0.5);
+        } else if (para.type === 'quote') {
+          this.doc.moveDown(0.5);
+          this.doc
+            .fontSize(11)
+            .font('Helvetica-Oblique')
+            .fillColor('#6B7280')
+            .text(para.text, this.margin + 20, undefined, {
+              width: this.contentWidth - 40
+            });
+          this.metadata.wordCount += para.text.split(' ').length;
+          this.doc.moveDown(0.8);
+          this.doc
+            .fontSize(12)
+            .font('Helvetica')
+            .fillColor('#374151');
+        } else {
+          this.doc.text(para.text, {
+            width: this.contentWidth,
+            align: 'justify'
+          });
+          this.doc.moveDown(1.2);
+          this.metadata.wordCount += para.text.split(' ').length;
+        }
+      });
+
+      if (this.doc.y > this.pageHeight - 180) {
+        this.doc.addPage();
+        this.currentPage++;
+      }
+      this.addSimpleChart(this.doc.y + 10);
+      this.metadata.imageCount++;
+    });
+
+    this.doc.fillColor('#000000');
+  }
+
+  generateRichSectionContent(sectionTitle, category, sectionIndex) {
+    const content = [];
+
+    content.push({
+      type: 'paragraph',
+      text: `Welcome to the ${sectionTitle} section of this comprehensive ${category.toLowerCase()} ${this.content.type.toLowerCase()}. This chapter is designed to provide you with in-depth knowledge, practical strategies, and actionable insights that you can apply immediately to your journey toward mastery in ${category.toLowerCase()}.`
+    });
+
+    content.push({
+      type: 'heading',
+      text: 'Understanding the Fundamentals'
+    });
+
+    content.push({
+      type: 'paragraph',
+      text: `The foundation of success in ${sectionTitle.toLowerCase()} begins with understanding the core principles that govern this area. Research has consistently shown that individuals who take the time to master the fundamentals achieve significantly better long-term results than those who rush through the basics. By building a strong foundation, you create a framework upon which all future learning and growth can be built.`
+    });
+
+    content.push({
+      type: 'paragraph',
+      text: `Consider ${sectionTitle.toLowerCase()} as a systematic approach that requires both theoretical knowledge and practical application. The most successful practitioners in ${category.toLowerCase()} understand that excellence comes from the consistent application of proven principles, combined with the flexibility to adapt these principles to their unique circumstances and goals.`
+    });
+
+    content.push({
+      type: 'heading',
+      text: 'Key Strategies and Approaches'
+    });
+
+    const strategies = [
+      `Develop a structured plan that outlines your specific goals and the steps needed to achieve them in ${sectionTitle.toLowerCase()}`,
+      `Track your progress regularly using measurable metrics that align with your objectives`,
+      `Seek feedback from experienced practitioners and be open to adjusting your approach based on results`,
+      `Maintain consistency in your practice while remaining flexible enough to adapt to changing circumstances`,
+      `Build a support system of peers and mentors who can provide guidance and accountability`
+    ];
+
+    content.push({
+      type: 'bullets',
+      items: strategies
+    });
+
+    content.push({
+      type: 'paragraph',
+      text: `Implementation is where knowledge transforms into results. As you work through the concepts presented in this section, focus on identifying specific ways to apply each principle to your current situation. The worksheets and templates provided throughout this ${this.content.type.toLowerCase()} are designed to help you create actionable plans that bridge the gap between theory and practice.`
+    });
+
+    content.push({
+      type: 'quote',
+      text: `"Success in ${category.toLowerCase()} comes not from knowing what to do, but from consistently doing what you know." This principle underscores the importance of taking action on the insights you gain from this material.`
+    });
+
+    content.push({
+      type: 'paragraph',
+      text: `One of the most important aspects of ${sectionTitle.toLowerCase()} is understanding how to measure progress effectively. Without clear metrics and regular assessment, it's difficult to know whether your efforts are producing the desired results. Establish specific, measurable goals at the beginning of your journey, and create a system for tracking your progress toward these goals on a regular basis.`
+    });
+
+    content.push({
+      type: 'paragraph',
+      text: `Remember that mastery is a journey, not a destination. The most successful individuals in ${category.toLowerCase()} view each challenge as an opportunity for growth and learning. Embrace the process, celebrate small victories along the way, and maintain a growth mindset that sees setbacks as valuable feedback rather than failures. With dedication, consistency, and the right strategies, you can achieve remarkable results in ${sectionTitle.toLowerCase()}.`
+    });
+
+    return content;
+  }
+
+  addWorksheetPage() {
+    this.doc.addPage();
+    this.currentPage++;
+
+    this.doc
+      .fontSize(28)
+      .font('Helvetica-Bold')
+      .fillColor('#1F2937')
+      .text('Worksheets & Activities', this.margin, 80);
+    this.metadata.wordCount += 3;
+
+    this.doc.moveDown(2);
+
+    const introText = 'Use this section to apply what you\'ve learned. Complete the exercises below to reinforce your understanding and create actionable plans.';
+    this.doc
+      .fontSize(12)
+      .font('Helvetica')
+      .fillColor('#374151')
+      .text(introText, {
+        width: this.contentWidth,
+        lineGap: 6
+      });
+    this.metadata.wordCount += introText.split(' ').length;
+
+    this.doc.moveDown(2);
+
+    this.doc
+      .fontSize(14)
+      .font('Helvetica-Bold')
+      .text('Goal Setting Exercise');
+    this.metadata.wordCount += 3;
+
+    this.doc.moveDown(1);
+
+    const questions = [
+      'What are your top 3 goals in this area?',
+      'What specific actions will you take this week?',
+      'What challenges do you anticipate and how will you overcome them?',
+      'Who can support you in achieving these goals?',
+      'How will you measure your progress?'
+    ];
+
+    questions.forEach((question, index) => {
+      this.doc
+        .fontSize(11)
+        .font('Helvetica-Bold')
+        .text(`${index + 1}. ${question}`);
+      this.metadata.wordCount += question.split(' ').length;
+      
+      this.doc.moveDown(0.5);
+      
+      this.doc
+        .fontSize(10)
+        .font('Helvetica')
+        .fillColor('#9CA3AF');
+      
+      for (let i = 0; i < 3; i++) {
+        this.doc.text('_'.repeat(90));
+        this.doc.moveDown(0.3);
+      }
+      
+      this.doc.moveDown(1);
+      this.doc.fillColor('#374151');
+    });
+
+    if (this.doc.y > this.pageHeight - 180) {
+      this.doc.addPage();
+      this.currentPage++;
+    }
+    this.addSimpleChart(this.doc.y + 20);
+    this.metadata.imageCount++;
+  }
+
+  addSummaryPage() {
+    this.doc.addPage();
+    this.currentPage++;
+
+    this.doc
+      .fontSize(28)
+      .font('Helvetica-Bold')
+      .fillColor('#1F2937')
+      .text('Summary & Key Takeaways', this.margin, 80);
+
+    this.doc.moveDown(2);
+
+    this.doc
+      .fontSize(12)
+      .font('Helvetica')
+      .fillColor('#374151')
+      .lineGap(6);
+
+    const summaryPoints = [
+      `You've completed a comprehensive journey through ${this.content.category.toLowerCase()}, covering essential concepts, strategies, and practical applications. The knowledge you've gained provides a solid foundation for continued growth and success.`,
+      
+      `The key to transforming this information into results is consistent application. Review the worksheets you've completed and identify specific actions you can take immediately. Start small, build momentum, and gradually expand your efforts as you gain confidence and experience.`,
+      
+      `Remember that mastery is an ongoing process. Refer back to this ${this.content.type.toLowerCase()} regularly as you progress on your journey. Different sections will become more relevant as you advance, and you'll discover new insights each time you review the material.`
+    ];
+
+    summaryPoints.forEach(point => {
+      this.doc.text(point, {
+        width: this.contentWidth,
+        align: 'justify'
+      });
+      this.doc.moveDown(1.5);
+      this.metadata.wordCount += point.split(' ').length;
+    });
+
+    this.doc.moveDown(1);
+    
+    this.doc
+      .fontSize(16)
+      .font('Helvetica-Bold')
+      .text('Next Steps', {
+        width: this.contentWidth
+      });
+
+    this.doc.moveDown(1);
+
+    const nextSteps = [
+      'Review your completed worksheets and create an action plan',
+      'Identify one key concept to implement this week',
+      'Share your goals with an accountability partner',
+      'Schedule regular review sessions to track progress',
+      'Continue learning and growing in this area'
+    ];
+
+    this.doc
+      .fontSize(12)
+      .font('Helvetica')
+      .fillColor('#374151');
+
+    nextSteps.forEach(step => {
+      this.doc.text('✓ ' + step, {
+        width: this.contentWidth - 20,
+        indent: 10
+      });
+      this.doc.moveDown(0.8);
+      this.metadata.wordCount += step.split(' ').length;
+    });
+
+    this.addSimpleChart(this.doc.y + 20);
+    this.metadata.imageCount++;
+  }
+
+  addFinalPage() {
+    this.doc.addPage();
+    this.currentPage++;
+
+    this.addDecorativeBackground('#3B82F6', '#9333EA');
+
+    const thankYouText = 'Thank You!';
+    this.doc
+      .fontSize(36)
+      .font('Helvetica-Bold')
+      .fillColor('#FFFFFF')
+      .text(thankYouText, this.margin, 250, {
+        width: this.contentWidth,
+        align: 'center'
+      });
+    this.metadata.wordCount += thankYouText.split(' ').length;
+
+    this.doc.moveDown(2);
+
+    const journeyText = 'Continue your journey to excellence';
+    this.doc
+      .fontSize(16)
+      .font('Helvetica')
+      .text(journeyText, {
+        width: this.contentWidth,
+        align: 'center'
+      });
+    this.metadata.wordCount += journeyText.split(' ').length;
+
+    this.doc.moveDown(3);
+
+    const generatedText = `This ${this.content.type.toLowerCase()} was generated by AutoPDF Library`;
+    this.doc
+      .fontSize(13)
+      .text(generatedText, {
+        width: this.contentWidth,
+        align: 'center'
+      });
+    this.metadata.wordCount += generatedText.split(' ').length;
+
+    const finalDateText = new Date(this.content.date).toLocaleDateString();
+    this.doc
+      .fontSize(11)
+      .fillColor('#E0E0E0')
+      .text(finalDateText, this.margin, 500, {
+        width: this.contentWidth,
+        align: 'center'
+      });
+    this.metadata.wordCount += finalDateText.split(' ').length;
+
+    const iconSize = 100;
+    const iconX = (this.pageWidth - iconSize) / 2;
+    const iconY = 350;
+
+    this.doc
+      .circle(iconX + iconSize / 2, iconY + iconSize / 2, iconSize / 2)
+      .fillAndStroke('#FFFFFF', 'rgba(255,255,255,0.3)');
+
+    this.doc
+      .fontSize(60)
+      .fillColor('#9333EA')
+      .text('🎯', iconX + 20, iconY + 20);
+
+    this.metadata.imageCount++;
   }
 }
 

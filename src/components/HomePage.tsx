@@ -16,6 +16,10 @@ interface PDF {
   date: string;
   filename: string;
   path: string;
+  pageCount?: number;
+  wordCount?: number;
+  imageCount?: number;
+  tags?: string[];
 }
 
 export default function HomePage() {
@@ -146,6 +150,14 @@ export default function HomePage() {
                 </div>
                 <h4 className="font-bold text-gray-800 mb-1 line-clamp-2">{pdf.title}</h4>
                 <p className="text-sm text-gray-600 mb-2">{pdf.type}</p>
+                
+                {(pdf.pageCount || pdf.imageCount) && (
+                  <div className="flex gap-2 text-xs text-gray-500 mb-2">
+                    {pdf.pageCount && <span>📄 {pdf.pageCount} pages</span>}
+                    {pdf.imageCount && <span>🖼️ {pdf.imageCount} images</span>}
+                  </div>
+                )}
+                
                 <a
                   href={`/${pdf.path}`}
                   download
