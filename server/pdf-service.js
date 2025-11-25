@@ -1,6 +1,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { generatePDF } from './pdf-generator.js';
+import { PDFGenerator } from './pdf-generator.js';
+import { AIContentGenerator } from './ai-content-generator.js';
 import { categories, getRandomContent } from './content-templates.js';
 import { addPDFMetadata, getTodayDate } from './utils.js';
 import { addGenerationLog } from './generation-logs.js';
@@ -8,10 +9,50 @@ import { addGenerationLog } from './generation-logs.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const aiGenerator = new AIContentGenerator();
+
 function generateFileName(category, type, index) {
   const sanitized = category.toLowerCase().replace(/[^a-z0-9]/g, '_');
   const typeSanitized = type.toLowerCase().replace(/[^a-z0-9]/g, '_');
   return `${sanitized}_${typeSanitized}_${index}.pdf`;
+}
+
+async function generatePDF(pdfData, outputPath, useAI = true) {
+  let aiContent = null;
+  let theme = null;
+  let coverImageUrl = null;
+
+  if (useAI && process.env.OPENAI_API_KEY) {
+    try {
+      console.log(`🤖 Generating AI content for: ${pdfData.title}`);
+      
+      const [generatedContent, generatedTheme, imagePrompt] = await Promise.all([
+        aiGenerator.generatePDFContent(
+          pdfData.title,
+          pdfData.category,
+          pdfData.type,
+          pdfData.sections
+        ),
+        aiGenerator.generateThemeColors(pdfData.title, pdfData.category),
+        aiGenerator.generateImagePrompt(pdfData.title, pdfData.category, 'cover')
+      ]);
+
+      aiContent = generatedContent;
+      theme = generatedTheme;
+      
+      if (imagePrompt) {
+        console.log(`🎨 Generating cover image...`);
+        coverImageUrl = await aiGenerator.generateImage(imagePrompt);
+      }
+      
+      console.log(`✓ AI content and theme generated successfully`);
+    } catch (error) {
+      console.error('⚠️ AI generation failed, using default content:', error.message);
+    }
+  }
+
+  const generator = new PDFGenerator(aiContent, theme, coverImageUrl);
+  return await generator.generatePDF(pdfData, outputPath);
 }
 
 export async function generateDailyPDFs() {

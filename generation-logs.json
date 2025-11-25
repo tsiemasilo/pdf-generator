@@ -1,6 +1,16 @@
 {
   "logs": [
     {
+      "id": "log-1764069423320",
+      "timestamp": "2025-11-25T11:17:03.320Z",
+      "type": "batch",
+      "success": true,
+      "count": 20,
+      "date": "2025-11-25",
+      "errors": 0,
+      "categories": 20
+    },
+    {
       "id": "log-1764067759420",
       "timestamp": "2025-11-25T10:49:19.420Z",
       "type": "single",

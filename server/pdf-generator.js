@@ -2,15 +2,23 @@ import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import https from 'https';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export class PDFGenerator {
-  constructor() {
+  constructor(aiContent = null, theme = null, coverImageUrl = null) {
     this.doc = null;
     this.currentPage = 0;
     this.content = null;
+    this.aiContent = aiContent;
+    this.theme = theme || {
+      primary: "#9333EA",
+      secondary: "#3B82F6",
+      accent: "#10B981"
+    };
+    this.coverImageUrl = coverImageUrl;
     this.metadata = {
       pageCount: 0,
       wordCount: 0,
@@ -23,8 +31,26 @@ export class PDFGenerator {
     this.contentWidth = this.pageWidth - (this.margin * 2);
   }
 
-  async generatePDF(content, outputPath) {
+  async downloadImage(url, filepath) {
     return new Promise((resolve, reject) => {
+      https.get(url, (response) => {
+        if (response.statusCode !== 200) {
+          reject(new Error(`Failed to download image: ${response.statusCode}`));
+          return;
+        }
+        const fileStream = fs.createWriteStream(filepath);
+        response.pipe(fileStream);
+        fileStream.on('finish', () => {
+          fileStream.close();
+          resolve(filepath);
+        });
+        fileStream.on('error', reject);
+      }).on('error', reject);
+    });
+  }
+
+  async generatePDF(content, outputPath) {
+    return new Promise(async (resolve, reject) => {
       try {
         this.content = content;
         const dir = path.dirname(outputPath);
@@ -46,7 +72,7 @@ export class PDFGenerator {
         const stream = fs.createWriteStream(outputPath);
         this.doc.pipe(stream);
 
-        this.addCoverPage();
+        await this.addCoverPage();
         this.addExecutiveSummary();
         this.addTableOfContents();
         this.addContentSections();
@@ -56,11 +82,13 @@ export class PDFGenerator {
 
         const range = this.doc.bufferedPageRange();
         for (let i = 0; i < range.count; i++) {
-          this.doc.switchToPage(i);
-          if (i > 0) {
-            this.addHeader(i + 1);
+          const pageIndex = range.start + i;
+          const pageNum = pageIndex + 1;
+          this.doc.switchToPage(pageIndex);
+          if (pageIndex > 0) {
+            this.addHeader(pageNum);
           }
-          this.addFooter(i + 1);
+          this.addFooter(pageNum);
         }
 
         this.metadata.pageCount = range.count;
@@ -139,10 +167,10 @@ export class PDFGenerator {
     this.doc.fillColor('#000000');
   }
 
-  addCoverPage() {
+  async addCoverPage() {
     this.currentPage++;
 
-    this.addDecorativeBackground('#9333EA', '#3B82F6');
+    this.addDecorativeBackground();
 
     const titleText = this.content.title;
     this.doc
@@ -179,25 +207,25 @@ export class PDFGenerator {
       });
     this.metadata.wordCount += categoryText.split(' ').length;
 
-    this.addCoverImage();
+    await this.addCoverImage();
 
     const descText = this.content.description || 'A comprehensive guide to help you achieve your goals.';
     this.doc
       .fontSize(13)
       .font('Helvetica')
-      .text(descText, this.margin + 60, 480, {
+      .text(descText, this.margin + 60, 500, {
         width: this.contentWidth - 120,
         align: 'center',
         lineGap: 5
       });
     this.metadata.wordCount += descText.split(' ').length;
 
-    const authorText = `Author: AutoPDF Engine`;
+    const authorText = `Author: AI-Enhanced AutoPDF Engine`;
     const dateText = `Generated: ${new Date(this.content.date).toLocaleDateString()}`;
     this.doc
       .fontSize(11)
       .fillColor('#E0E0E0')
-      .text(authorText, this.margin, 600, {
+      .text(authorText, this.margin, 620, {
         width: this.contentWidth,
         align: 'center'
       })
@@ -208,32 +236,55 @@ export class PDFGenerator {
     this.metadata.wordCount += authorText.split(' ').length + dateText.split(' ').length;
 
     this.doc.fillColor('#000000');
-    this.metadata.imageCount++;
   }
 
   addDecorativeBackground(color1, color2) {
     const gradient = this.doc.linearGradient(0, 0, 0, this.pageHeight);
-    gradient.stop(0, color1);
-    gradient.stop(1, color2);
+    gradient.stop(0, color1 || this.theme.primary);
+    gradient.stop(1, color2 || this.theme.secondary);
     
     this.doc
       .rect(0, 0, this.pageWidth, this.pageHeight)
       .fill(gradient);
   }
 
-  addCoverImage() {
-    const iconSize = 80;
+  async addCoverImage() {
+    const iconSize = 120;
     const iconX = (this.pageWidth - iconSize) / 2;
-    const iconY = 360;
+    const iconY = 340;
+
+    if (this.coverImageUrl) {
+      try {
+        const tempImagePath = path.join(__dirname, '../temp_cover_image.png');
+        await this.downloadImage(this.coverImageUrl, tempImagePath);
+        
+        this.doc.image(tempImagePath, iconX, iconY, {
+          width: iconSize,
+          height: iconSize,
+          fit: [iconSize, iconSize],
+          align: 'center'
+        });
+        
+        if (fs.existsSync(tempImagePath)) {
+          fs.unlinkSync(tempImagePath);
+        }
+        
+        this.metadata.imageCount++;
+        this.doc.fillColor('#FFFFFF');
+        return;
+      } catch (error) {
+        console.error('Error adding cover image:', error);
+      }
+    }
 
     this.doc
       .circle(iconX + iconSize / 2, iconY + iconSize / 2, iconSize / 2)
       .fillAndStroke('#FFFFFF', '#E0E0E0');
 
     this.doc
-      .fontSize(48)
-      .fillColor('#9333EA')
-      .text('📄', iconX + 16, iconY + 16);
+      .fontSize(64)
+      .fillColor(this.theme.primary)
+      .text('📄', iconX + 20, iconY + 20);
 
     this.doc.fillColor('#FFFFFF');
   }
@@ -250,17 +301,21 @@ export class PDFGenerator {
 
     this.doc.moveDown(2);
 
-    const summaryParagraphs = [
-      `This ${this.content.type.toLowerCase()} provides a comprehensive exploration of ${this.content.category.toLowerCase()}, designed to equip you with the knowledge, tools, and strategies necessary for success. Through carefully structured sections and actionable insights, you'll discover proven methodologies that can be immediately applied to your journey.`,
-      
-      `The purpose of this document is to serve as your complete resource for mastering ${this.content.category.toLowerCase()}. Whether you're just beginning your journey or looking to enhance your existing knowledge, this guide offers valuable information at every level. Each section has been crafted to build upon the previous one, creating a cohesive learning experience.`,
-      
-      `Our target audience includes professionals, enthusiasts, and anyone committed to personal and professional growth in ${this.content.category.toLowerCase()}. We've designed this material to be accessible yet comprehensive, ensuring that readers at all levels can benefit from the content.`,
-      
-      `To get the most from this ${this.content.type.toLowerCase()}, we recommend working through the sections in order, completing the exercises and worksheets as you go. Take time to reflect on how each concept applies to your specific situation. The templates and tools provided are meant to be customized to your needs, so don't hesitate to adapt them to your circumstances.`,
-      
-      `Throughout this guide, you'll find practical examples, detailed explanations, and actionable steps. We've included visual aids, charts, and diagrams to help illustrate key concepts. The worksheets and activity pages are designed to help you apply what you've learned immediately, reinforcing the material through hands-on practice.`
-    ];
+    let summaryText = this.aiContent?.executiveSummary;
+    
+    const summaryParagraphs = summaryText ? 
+      summaryText.split('\n\n').filter(p => p.trim()) :
+      [
+        `This ${this.content.type.toLowerCase()} provides a comprehensive exploration of ${this.content.category.toLowerCase()}, designed to equip you with the knowledge, tools, and strategies necessary for success. Through carefully structured sections and actionable insights, you'll discover proven methodologies that can be immediately applied to your journey.`,
+        
+        `The purpose of this document is to serve as your complete resource for mastering ${this.content.category.toLowerCase()}. Whether you're just beginning your journey or looking to enhance your existing knowledge, this guide offers valuable information at every level. Each section has been crafted to build upon the previous one, creating a cohesive learning experience.`,
+        
+        `Our target audience includes professionals, enthusiasts, and anyone committed to personal and professional growth in ${this.content.category.toLowerCase()}. We've designed this material to be accessible yet comprehensive, ensuring that readers at all levels can benefit from the content.`,
+        
+        `To get the most from this ${this.content.type.toLowerCase()}, we recommend working through the sections in order, completing the exercises and worksheets as you go. Take time to reflect on how each concept applies to your specific situation. The templates and tools provided are meant to be customized to your needs, so don't hesitate to adapt them to your circumstances.`,
+        
+        `Throughout this guide, you'll find practical examples, detailed explanations, and actionable steps. We've included visual aids, charts, and diagrams to help illustrate key concepts. The worksheets and activity pages are designed to help you apply what you've learned immediately, reinforcing the material through hands-on practice.`
+      ];
 
     this.doc
       .fontSize(12)
@@ -277,8 +332,14 @@ export class PDFGenerator {
       this.metadata.wordCount += para.split(' ').length;
     });
 
-    this.addSimpleChart(450);
-    this.metadata.imageCount++;
+    const chartHeight = 130;
+    const requiredSpace = chartHeight + 50;
+    
+    if (this.doc.y < this.pageHeight - requiredSpace) {
+      const chartY = Math.max(this.doc.y + 10, this.margin + 50);
+      this.addSimpleChart(chartY);
+      this.metadata.imageCount++;
+    }
   }
 
   addSimpleChart(yPosition) {
@@ -301,7 +362,7 @@ export class PDFGenerator {
 
       this.doc
         .rect(barX, barY, barWidth, barHeight)
-        .fill('#9333EA');
+        .fill(this.theme.primary);
     });
 
     this.doc
@@ -326,7 +387,7 @@ export class PDFGenerator {
 
     this.doc
       .fontSize(32)
-      .fillColor('#9333EA')
+      .fillColor(this.theme.primary)
       .text('📊', iconX + 14, yPosition + 14);
 
     this.doc.fillColor('#000000');
@@ -404,7 +465,8 @@ export class PDFGenerator {
 
       this.doc.moveDown(1.5);
 
-      const paragraphs = this.generateRichSectionContent(section.title, this.content.category, sectionIndex);
+      const aiSectionContent = this.aiContent?.sections?.[sectionIndex]?.content;
+      const paragraphs = aiSectionContent || this.generateRichSectionContent(section.title, this.content.category, sectionIndex);
       
       this.doc
         .fontSize(12)
@@ -463,11 +525,16 @@ export class PDFGenerator {
         }
       });
 
-      if (this.doc.y > this.pageHeight - 180) {
+      const chartHeight = 130;
+      const requiredSpace = chartHeight + 50;
+      
+      if (this.doc.y > this.pageHeight - requiredSpace) {
         this.doc.addPage();
         this.currentPage++;
       }
-      this.addSimpleChart(this.doc.y + 10);
+      
+      const chartY = Math.max(this.doc.y + 10, this.margin + 50);
+      this.addSimpleChart(chartY);
       this.metadata.imageCount++;
     });
 
@@ -603,12 +670,14 @@ export class PDFGenerator {
       this.doc.fillColor('#374151');
     });
 
-    if (this.doc.y > this.pageHeight - 180) {
-      this.doc.addPage();
-      this.currentPage++;
+    const chartHeight = 130;
+    const requiredSpace = chartHeight + 50;
+    
+    if (this.doc.y < this.pageHeight - requiredSpace) {
+      const chartY = Math.max(this.doc.y + 20, this.margin + 50);
+      this.addSimpleChart(chartY);
+      this.metadata.imageCount++;
     }
-    this.addSimpleChart(this.doc.y + 20);
-    this.metadata.imageCount++;
   }
 
   addSummaryPage() {
@@ -629,13 +698,15 @@ export class PDFGenerator {
       .fillColor('#374151')
       .lineGap(6);
 
-    const summaryPoints = [
-      `You've completed a comprehensive journey through ${this.content.category.toLowerCase()}, covering essential concepts, strategies, and practical applications. The knowledge you've gained provides a solid foundation for continued growth and success.`,
-      
-      `The key to transforming this information into results is consistent application. Review the worksheets you've completed and identify specific actions you can take immediately. Start small, build momentum, and gradually expand your efforts as you gain confidence and experience.`,
-      
-      `Remember that mastery is an ongoing process. Refer back to this ${this.content.type.toLowerCase()} regularly as you progress on your journey. Different sections will become more relevant as you advance, and you'll discover new insights each time you review the material.`
-    ];
+    const summaryPoints = this.aiContent?.keyTakeaways?.length > 0 ? 
+      this.aiContent.keyTakeaways :
+      [
+        `You've completed a comprehensive journey through ${this.content.category.toLowerCase()}, covering essential concepts, strategies, and practical applications. The knowledge you've gained provides a solid foundation for continued growth and success.`,
+        
+        `The key to transforming this information into results is consistent application. Review the worksheets you've completed and identify specific actions you can take immediately. Start small, build momentum, and gradually expand your efforts as you gain confidence and experience.`,
+        
+        `Remember that mastery is an ongoing process. Refer back to this ${this.content.type.toLowerCase()} regularly as you progress on your journey. Different sections will become more relevant as you advance, and you'll discover new insights each time you review the material.`
+      ];
 
     summaryPoints.forEach(point => {
       this.doc.text(point, {
@@ -657,13 +728,15 @@ export class PDFGenerator {
 
     this.doc.moveDown(1);
 
-    const nextSteps = [
-      'Review your completed worksheets and create an action plan',
-      'Identify one key concept to implement this week',
-      'Share your goals with an accountability partner',
-      'Schedule regular review sessions to track progress',
-      'Continue learning and growing in this area'
-    ];
+    const nextSteps = this.aiContent?.nextSteps?.length > 0 ?
+      this.aiContent.nextSteps :
+      [
+        'Review your completed worksheets and create an action plan',
+        'Identify one key concept to implement this week',
+        'Share your goals with an accountability partner',
+        'Schedule regular review sessions to track progress',
+        'Continue learning and growing in this area'
+      ];
 
     this.doc
       .fontSize(12)
@@ -679,15 +752,21 @@ export class PDFGenerator {
       this.metadata.wordCount += step.split(' ').length;
     });
 
-    this.addSimpleChart(this.doc.y + 20);
-    this.metadata.imageCount++;
+    const chartHeight = 130;
+    const requiredSpace = chartHeight + 50;
+    
+    if (this.doc.y < this.pageHeight - requiredSpace) {
+      const chartY = Math.max(this.doc.y + 20, this.margin + 50);
+      this.addSimpleChart(chartY);
+      this.metadata.imageCount++;
+    }
   }
 
   addFinalPage() {
     this.doc.addPage();
     this.currentPage++;
 
-    this.addDecorativeBackground('#3B82F6', '#9333EA');
+    this.addDecorativeBackground();
 
     const thankYouText = 'Thank You!';
     this.doc
